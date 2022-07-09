@@ -1,33 +1,67 @@
 ﻿// See https://aka.ms/new-console-template for more information
-Thread mainThread = Thread.CurrentThread;
-mainThread.Name = "Main Thread";
-// Console.WriteLine(mainThread.Name);
 
-Thread thread1 = new Thread(() => CountDown("Timer #1"));
-Thread thread2 = new Thread(() => CountUp("Timer #2"));
-thread1.Start();
-thread2.Start();
+var startTime = DateTime.UtcNow;
 
-Console.WriteLine(mainThread.Name + " is completed!");
+var threads = ThreadSpawner(150000);
 
-Console.ReadKey();
-
-static void CountDown(string timerName)
+foreach (Thread machineThread in threads)
 {
-    for (int i = 100; i >= 0; i--)
-    {
-        Console.WriteLine($"{timerName} : {i} Milliseconds");
-        Thread.Sleep(100);
-    }
-    Console.WriteLine($"{timerName} is completed!");
+    machineThread.Join();
 }
 
-static void CountUp(string timerName)
+var endTime = DateTime.UtcNow;
+Console.WriteLine($"Completed : Time {endTime - startTime}");
+Console.ReadKey();
+
+static void CountDown(string timerName, int sleepTime, int numberOfTaskToDo)
 {
-    for (int i = 0; i <= 100; i++)
+    for (int i = numberOfTaskToDo; i >= 0; i--)
     {
-        Console.WriteLine($"{timerName} : {i} Milliseconds");
-        Thread.Sleep(100);
+        Console.WriteLine($"{Thread.CurrentThread.Name} : Counting Down Job # {i}");
+        Thread.Sleep(sleepTime);
     }
-    Console.WriteLine($"{timerName} is completed!");
+    Console.WriteLine($"{Thread.CurrentThread.Name} is completed!");
+}
+
+static void CountUp(string timerName, int sleepTime, int numberOfTaskToDo)
+{
+    for (int i = 0; i <= numberOfTaskToDo; i++)
+    {
+        Console.WriteLine($"{Thread.CurrentThread.Name} : Counting Up Job # {i}");
+        Thread.Sleep(sleepTime);
+    }
+    Console.WriteLine($"{Thread.CurrentThread.Name} is completed!");
+}
+
+static List<Thread> ThreadSpawner(int numberOfThreads)
+{
+    var threads = new List<Thread>();
+    Random r = new Random();
+
+    for (int i = 1; i <= numberOfThreads; i++)
+    {
+        int randomSleepTime = r.Next(500, 2500);
+        int randomTaskNumber = r.Next(1, 10);
+        // 0 is CountDown
+        // 1 is CountUp
+        int countStyle = r.Next(0, 100);
+
+        switch (countStyle)
+        {
+            case >= 50:
+                Thread threadCountDown = new Thread(() => CountDown($"Thread runner #{i}", randomSleepTime, randomTaskNumber));
+                threadCountDown.Name = $"Thread # {i}";
+                threads.Add(threadCountDown);
+                threadCountDown.Start();
+                break;
+            default:
+                Thread threadCountUp = new Thread(() => CountUp($"Thread runner #{i}", randomSleepTime, randomTaskNumber));
+                threadCountUp.Name = $"Thread # {i}";
+                threads.Add(threadCountUp);
+                threadCountUp.Start();
+                break;
+        }
+    }
+
+    return threads;
 }
