@@ -42,8 +42,8 @@ static List<Thread> ThreadSpawner(int numberOfThreads)
     {
         int randomSleepTime = r.Next(500, 2500);
         int randomTaskNumber = r.Next(1, 10);
-        // 0 is CountDown
-        // 1 is CountUp
+        // 0 to 50 is CountDown
+        // 51 to 100 is CountUp
         int countStyle = r.Next(0, 100);
 
         switch (countStyle)
